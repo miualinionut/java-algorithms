@@ -27,17 +27,25 @@ public class Backtracking {
 
     }
 
-    void decrease(Deque<Integer> stack) {
-        stack.removeLast();
+    void display(Deque<Integer> stack) {
+        stack.forEach(e -> System.out.print(e + " "));
+        System.out.println();
     }
 
     void increase(Deque<Integer> stack) {
         stack.addLast(0);
     }
 
-    void display(Deque<Integer> stack) {
-        stack.forEach(e -> System.out.print(e + " "));
-        System.out.println();
+    void decrease(Deque<Integer> stack) {
+        stack.removeLast();
+    }
+
+    void incrementCurrentHead(Deque<Integer> stack) {
+        stack.addLast(stack.removeLast() + 1);
+    }
+
+    boolean isCurrentHeadValid(Deque<Integer> stack, Integer maxValidValue) {
+        return stack.getLast() <= maxValidValue;
     }
 
     boolean isCompleteSolution(Deque<Integer> stack, int stackSize) {
@@ -46,14 +54,6 @@ public class Backtracking {
 
     boolean isValidPartialSolution(Deque<Integer> stack) {
         return isHeadUnique(stack);
-    }
-
-    boolean isCurrentHeadValid(Deque<Integer> stack, Integer maxValidValue) {
-        return stack.getLast() <= maxValidValue;
-    }
-
-    void incrementCurrentHead(Deque<Integer> stack) {
-        stack.addLast(stack.removeLast() + 1);
     }
 
     boolean isHeadUnique(Deque<Integer> stack) {

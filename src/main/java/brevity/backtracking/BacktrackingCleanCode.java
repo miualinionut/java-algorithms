@@ -36,13 +36,18 @@ public class BacktrackingCleanCode {
         }
     }
 
-    private void display(Deque<Integer> stack) {
+    void display(Deque<Integer> stack) {
         stack.forEach(e -> System.out.print(e + " "));
         System.out.println();
     }
 
-    void increase(Deque<Integer> stack) { stack.addLast(0); }
-    void decrease(Deque<Integer> stack) { stack.removeLast(); }
+    void increase(Deque<Integer> stack) {
+        stack.addLast(0);
+    }
+
+    void decrease(Deque<Integer> stack) {
+        stack.removeLast();
+    }
 
     void incrementCurrentHead(Deque<Integer> stack) {
         stack.addLast(stack.removeLast() + 1);
