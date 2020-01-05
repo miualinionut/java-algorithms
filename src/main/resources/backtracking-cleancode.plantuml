@@ -1,0 +1,38 @@
+@startuml
+
+start
+
+partition initialization {
+    : (0.1) define empty stack;
+    : (0.2) define maxValidValue;
+    : (0.3) increase(stack);
+}
+
+partition "loop" {
+    repeat
+        : (1) increment current head;
+        if ( (2) isCurrentHeadValid ?) then (yes)
+            partition "partial solution" {
+                if ( (3) isValidPartialSolution ?) then (yes)
+                    partition "complete solution" {
+                        if ( (4) isCompleteSolution ?) then (yes)
+                            : (4.1) display(stack);
+                        else (no)
+                            : (4.2) increase(stack);
+                        endif;
+                    }
+                else (no)
+                    : (3.1 ) do nothing and loop again;
+                endif;
+            }
+        else (no)
+            partition "decrease stack (go back)" {
+                : (2.1) decrease(stack);
+            }
+        endif;
+    repeat while (stack has elements ?) is (yes);
+}
+
+stop
+
+@enduml
