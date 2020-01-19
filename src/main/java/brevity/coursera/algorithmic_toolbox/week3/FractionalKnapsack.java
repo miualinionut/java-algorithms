@@ -3,36 +3,64 @@ package brevity.coursera.algorithmic_toolbox.week3;
 import java.util.*;
 
 import static java.lang.Math.min;
+import static java.util.stream.Collectors.toList;
 
 public class FractionalKnapsack {
-    private static double getOptimalValue(int capacity, int[] values, int[] weights) {
-        double value = 0;
 
-        int availableCapacity = capacity;
-        List<LootDto> loots = LootDto.getSortedByValuePerUnit(values, weights);
-        while (knapsackIsNotFull(availableCapacity) && moreLootsAvailable(loots)) {
-            LootDto lootWithHighestValue = getHighestValueLoot(loots);
-            int lootCapacity = min(availableCapacity, lootWithHighestValue.weight);
-            double lootValue = lootWithHighestValue.valuePerUnit * lootCapacity;
+    private static double getOptimalValue2(int capacity, int[] values, int[] weights) {
+        List<LootDto> resources = LootDto.of(values, weights);
+        Deque<LootDto> solutionCandidate = greedy(resources, capacity, capacity);
 
-            value += lootValue;
-            availableCapacity -= lootCapacity;
-            loots.remove(lootWithHighestValue);
+        return solutionCandidate.stream()
+                .map(e -> e.getValuePerUnit() * e.getCapacity())
+                .mapToDouble(e -> e)
+                .sum();
+    }
+
+
+    public static Deque<LootDto> greedy(List<LootDto> resources, Integer localMax, Integer globalMax) {
+        Deque<LootDto> stack = new ArrayDeque<>();
+        LootDto nextValue = nextGreedyChoice(stack, resources, localMax, globalMax);
+
+        while (isSafeMove(resources, nextValue)) {
+            makeMove(stack, nextValue);
+            reduceToSubproblem(resources, nextValue);
+            nextValue = nextGreedyChoice(stack, resources, localMax, globalMax);
         }
 
-        return value;
+        return stack;
     }
 
-    private static boolean moreLootsAvailable(List<LootDto> loots) {
-        return !loots.isEmpty();
+    public static void makeMove(Deque<LootDto> stack, LootDto greedyChoice) {
+        stack.push(greedyChoice);
     }
 
-    private static boolean knapsackIsNotFull(int availableCapacity) {
-        return availableCapacity > 0;
+    public static boolean isSafeMove(List<LootDto> resources, LootDto greedyChoice) {
+        return greedyChoice.getCapacity() != 0 && resources.contains(greedyChoice);
     }
 
-    private static LootDto getHighestValueLoot(List<LootDto> loots) {
-        return loots.get(0);
+    public static LootDto nextGreedyChoice(Deque<LootDto> stack, List<LootDto> resources, Integer localMax, Integer globalMax) {
+        Integer currentFilledCapacity = stack.stream()
+                .mapToInt(LootDto::getCapacity)
+                .sum();
+        Integer availableCapacity = globalMax - currentFilledCapacity;
+
+        LootDto highestValueResource = getHighestValueResource(resources);
+        Integer lootCapacity = min(availableCapacity, highestValueResource.getWeight());
+        return new LootDto(highestValueResource.getValue(), highestValueResource.getWeight(), lootCapacity);
+    }
+
+    public static void reduceToSubproblem(List<LootDto> resources, LootDto greedyChoice) {
+        List<LootDto> outdatedResources = resources.stream()
+                .filter(resource -> resource.equals(greedyChoice))
+                .collect(toList());
+        resources.removeAll(outdatedResources);
+    }
+
+    private static LootDto getHighestValueResource(List<LootDto> loots) {
+        return loots.stream()
+                .max(LootDto.compareByValuePerUnit)
+                .orElse(new LootDto(0, 0, 0));
     }
 
     public static void main(String args[]) {
@@ -45,36 +73,68 @@ public class FractionalKnapsack {
             values[i] = scanner.nextInt();
             weights[i] = scanner.nextInt();
         }
-        System.out.println(getOptimalValue(capacity, values, weights));
+        System.out.println(getOptimalValue2(capacity, values, weights));
     }
 
-    public static class LootDto {
-        int value;
-        int weight;
-        double valuePerUnit;
+}
 
-        public LootDto(int value, int weight, double valuePerUnit) {
-            this.value = value;
-            this.weight = weight;
-            this.valuePerUnit = valuePerUnit;
-        }
+class LootDto {
+    private final int value;
+    private final int weight;
+    private final int capacity;
 
-        public static List<LootDto> getSortedByValuePerUnit(int[] values, int[] weights) {
-            List<LootDto> list = new ArrayList<>();
-            for (int i = 0; i < values.length; i++) {
-                double valuePerUnit = ((double) values[i]) / weights[i];
-                list.add(new LootDto(values[i], weights[i], valuePerUnit));
-            }
-            Collections.sort(list, Collections.reverseOrder((t0, t1) -> {
-                if (t0.valuePerUnit < t1.valuePerUnit) {
-                    return -1;
-                }
-                if (t0.valuePerUnit > t1.valuePerUnit) {
-                    return 1;
-                }
-                return 0;
-            }));
-            return list;
-        }
+    public LootDto(int value, int weight, int capacity) {
+        this.value = value;
+        this.weight = weight;
+        this.capacity = capacity;
     }
-} 
+
+    public int getValue() {
+        return value;
+    }
+
+    public int getWeight() {
+        return weight;
+    }
+
+    public int getCapacity() {
+        return capacity;
+    }
+
+    public double getValuePerUnit() {
+        return ((double) value) / weight;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        LootDto lootDto = (LootDto) o;
+        return value == lootDto.value &&
+                weight == lootDto.weight;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value, weight);
+    }
+
+    public static List<LootDto> of(int[] values, int[] weights) {
+        List<LootDto> list = new ArrayList<>();
+        for (int i = 0; i < values.length; i++) {
+            int initialCapacity = weights[i];
+            list.add(new LootDto(values[i], weights[i], initialCapacity));
+        }
+        return list;
+    }
+
+    public static Comparator<LootDto> compareByValuePerUnit = (t0, t1) -> {
+        if (t0.getValuePerUnit() < t1.getValuePerUnit()) {
+            return -1;
+        }
+        if (t0.getValuePerUnit() > t1.getValuePerUnit()) {
+            return 1;
+        }
+        return 0;
+    };
+}
