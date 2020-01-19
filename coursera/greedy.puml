@@ -1,0 +1,9 @@
+@startuml
+while (resources available ?) is (not empty)
+  :make a greedy choice;
+  if (is safe move ?) then (yes)
+  else (no)
+  endif
+endwhile (empty)
+:close file;
+@enduml
