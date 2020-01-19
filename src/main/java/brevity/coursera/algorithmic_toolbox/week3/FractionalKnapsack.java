@@ -20,12 +20,12 @@ public class FractionalKnapsack {
 
     public static Deque<LootDto> greedy(List<LootDto> resources, Integer localMax, Integer globalMax) {
         Deque<LootDto> stack = new ArrayDeque<>();
-        LootDto nextValue = nextGreedyChoice(stack, resources, localMax, globalMax);
+        LootDto nextValue = greedyChoice(stack, resources, localMax, globalMax);
 
-        while (isSafeMove(resources, nextValue)) {
+        while (isSafeMove(resources, nextValue, globalMax)) {
             makeMove(stack, nextValue);
             reduceToSubproblem(resources, nextValue);
-            nextValue = nextGreedyChoice(stack, resources, localMax, globalMax);
+            nextValue = greedyChoice(stack, resources, localMax, globalMax);
         }
 
         return stack;
@@ -35,19 +35,19 @@ public class FractionalKnapsack {
         stack.push(greedyChoice);
     }
 
-    public static boolean isSafeMove(List<LootDto> resources, LootDto greedyChoice) {
-        return greedyChoice.getCapacity() != 0 && resources.contains(greedyChoice);
+    public static boolean isSafeMove(List<LootDto> resources, LootDto greedyChoice, Integer globalMax) {
+        return greedyChoice.getCapacity() > 0 && resources.contains(greedyChoice);
     }
 
-    public static LootDto nextGreedyChoice(Deque<LootDto> stack, List<LootDto> resources, Integer localMax, Integer globalMax) {
+    public static LootDto greedyChoice(Deque<LootDto> stack, List<LootDto> resources, int localMax, int globalMax) {
         Integer currentFilledCapacity = stack.stream()
                 .mapToInt(LootDto::getCapacity)
                 .sum();
-        Integer availableCapacity = globalMax - currentFilledCapacity;
 
-        LootDto highestValueResource = getHighestValueResource(resources);
-        Integer lootCapacity = min(availableCapacity, highestValueResource.getWeight());
-        return new LootDto(highestValueResource.getValue(), highestValueResource.getWeight(), lootCapacity);
+        LootDto loot = getHighestValueResource(resources);
+        Integer availableCapacity = globalMax - currentFilledCapacity;
+        Integer lootCapacity = min(availableCapacity, loot.getWeight());
+        return new LootDto(loot.getValue(), loot.getWeight(), lootCapacity);
     }
 
     public static void reduceToSubproblem(List<LootDto> resources, LootDto greedyChoice) {

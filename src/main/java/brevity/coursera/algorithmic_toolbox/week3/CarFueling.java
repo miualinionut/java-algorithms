@@ -27,12 +27,12 @@ public class CarFueling {
 
     public static Deque<Integer> greedy(List<Integer> resources, Integer localMax, Integer globalMax) {
         Deque<Integer> stack = new ArrayDeque<>();
-        Integer nextValue = nextGreedyChoice(stack, resources, localMax, globalMax);
+        Integer nextValue = greedyChoice(stack, resources, localMax, globalMax);
 
-        while (isSafeMove(resources, nextValue)) {
+        while (isSafeMove(resources, nextValue, globalMax)) {
             makeMove(stack, nextValue);
             reduceToSubproblem(resources, nextValue);
-            nextValue = nextGreedyChoice(stack, resources, localMax, globalMax);
+            nextValue = greedyChoice(stack, resources, localMax, globalMax);
         }
 
         return stack;
@@ -42,25 +42,32 @@ public class CarFueling {
         stack.push(greedyChoice);
     }
 
-    public static boolean isSafeMove(List<Integer> resources, Integer greedyChoice) {
-        return greedyChoice == 0 || resources.contains(greedyChoice);
+    public static boolean isSafeMove(List<Integer> resources, Integer greedyChoice, Integer globalMax) {
+        return resources.contains(greedyChoice) || globalMax.equals(greedyChoice);
     }
 
-    public static Integer nextGreedyChoice(Deque<Integer> stack, List<Integer> resources, Integer localMax, Integer globalMax) {
-        if (stack.isEmpty()) {
-            return 0;
-        }
-        Integer current = stack.element();
+    public static Integer greedyChoice(Deque<Integer> stack, List<Integer> resources, int localMax, int globalMax) {
+        Integer nonSafeValue = null;
+        Integer greedyChoiceValue = nonSafeValue;
+
+        Integer current = stack.isEmpty() ? 0 : stack.element();
         Integer currentMax = current + localMax;
-        if (currentMax >= globalMax) {
-            return globalMax;
-        } else {
-            return resources.stream()
-                    .filter(value -> value <= currentMax)
-                    .mapToInt(e -> e)
-                    .max()
-                    .orElse(currentMax);
+        if (current == globalMax) { //at the destination
+            greedyChoiceValue = nonSafeValue;
+        } else if (currentMax >= globalMax) { //close to destination
+            greedyChoiceValue = globalMax;
+        } else if (currentMax < globalMax) { //far from destination
+            greedyChoiceValue = getHighestValueResource(resources, currentMax);
         }
+        return greedyChoiceValue;
+    }
+
+    private static int getHighestValueResource(List<Integer> resources, Integer currentMax) {
+        return resources.stream()
+                .filter(value -> value <= currentMax)
+                .mapToInt(e -> e)
+                .max()
+                .orElse(currentMax);
     }
 
     public static void reduceToSubproblem(List<Integer> resources, Integer greedyChoice) {

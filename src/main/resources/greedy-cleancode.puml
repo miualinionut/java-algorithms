@@ -1,0 +1,14 @@
+@startuml
+partition initialization {
+    :(1) nextValue = greedyChoice(stack, resources, localMax, globalMax);
+}
+partition loop {
+    while ((2) isSafeMove(resources, nextValue, globalMax) ?) is (yes)
+        :(3) makeMove(stack, nextValue);
+        :(4) reduceToSubproblem(resources, nextValue);
+        :(1) nextValue = greedyChoice(stack, resources, localMax, globalMax);
+    endwhile (no)
+}
+stop
+
+@enduml
