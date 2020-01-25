@@ -4,13 +4,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static brevity.coursera.algorithmic_toolbox.week3.LargestNumber.ProblemData.largestFirst;
+import static java.util.stream.Collectors.toList;
+
 public class LargestNumber {
 
-    public static int maxLength = 0;
-
     private static String largestNumber(String[] a) {
-        maxLength = Stream.of(a).map(String::length).mapToInt(Integer::intValue).max().getAsInt();
-        List<String> resources = Stream.of(a).sorted(ProblemData.largestFirst).collect(Collectors.toList());
+        List<String> resources = Stream.of(a).sorted(largestFirst).collect(toList());
         ProblemData problemData = new ProblemData(resources);
         Deque<String> largestNumber = greedy(problemData);
 
@@ -21,7 +21,7 @@ public class LargestNumber {
     private static Deque<String> greedy(ProblemData problemData) {
         Deque<String> stack = new ArrayDeque<>();
         String nextValue = greedyChoice(stack, problemData);
-        while(isSafeMove(stack, problemData, nextValue)) {
+        while (isSafeMove(stack, problemData, nextValue)) {
             makeMove(stack, nextValue);
             reduceToSubproblem(stack, problemData);
             nextValue = greedyChoice(stack, problemData);
