@@ -1,50 +1,116 @@
 package brevity.coursera.algorithmic_toolbox.week4;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Random;
+import java.util.StringTokenizer;
 
 public class Sorting {
     private static Random random = new Random();
 
-    private static int[] partition3(int[] a, int l, int r) {
-      //write your code here
+    private static PartitionDto partition3(int[] a, int leftIndex, int initialPivotIndex, int rightIndex) {
+        PartitionDto partitionDto = new PartitionDto();
 
+        int leftPivotIndex = moveSmallerToTheLeftOfPivot(a, leftIndex, initialPivotIndex, rightIndex);
+        int rightPivotIndex = moveEqualToTheLeftOfPivot(a, leftIndex, leftPivotIndex, rightIndex);
 
-      int m1 = l;
-      int m2 = r;
-      int[] m = {m1, m2};
-      return m;
+        partitionDto.smallerSublistLeftIndex = leftIndex;
+        partitionDto.smallerSublistRightIndex = leftPivotIndex - 1;
+
+        partitionDto.equalsSublistLeftIndex = leftPivotIndex;
+        partitionDto.equalsSublistRightIndex = rightPivotIndex;
+
+        partitionDto.biggerSublistLeftIndex = rightPivotIndex + 1;
+        partitionDto.biggerSublistRightIndex = rightIndex;
+
+        return partitionDto;
     }
 
-    private static int partition2(int[] a, int l, int r) {
-        int x = a[l];
-        int j = l;
-        for (int i = l + 1; i <= r; i++) {
-            if (a[i] <= x) {
-                j++;
-                int t = a[i];
-                a[i] = a[j];
-                a[j] = t;
+    private static int moveEqualToTheLeftOfPivot(int[] a, int leftIndex, int leftPivotIndex, int rightIndex) {
+        int pivot = a[leftPivotIndex];
+
+        int pivotOffset = 0;
+        for (int i = leftPivotIndex + 1; i <= rightIndex; i++) {
+            if (pivot == a[i]) {
+                pivotOffset++;
+                swap(a, leftPivotIndex + pivotOffset, i);
             }
         }
-        int t = a[l];
-        a[l] = a[j];
-        a[j] = t;
-        return j;
+
+        int rightPivotIndex = leftPivotIndex + pivotOffset;
+        return rightPivotIndex;
     }
 
-    private static void randomizedQuickSort(int[] a, int l, int r) {
-        if (l >= r) {
+    private static int moveSmallerToTheLeftOfPivot(int[] a, int leftIndex, int initialPivotIndex, int rightIndex) {
+        int pivot = a[initialPivotIndex];
+
+        int tempPivotIndex = leftIndex;
+        swap(a, tempPivotIndex, initialPivotIndex);
+
+        int pivotOffset = 0;
+        for (int i = tempPivotIndex + 1; i <= rightIndex; i++) {
+            if (a[i] < pivot) {
+                pivotOffset++;
+                swap(a, tempPivotIndex + pivotOffset, i);
+            }
+        }
+
+        int newPivotIndex = tempPivotIndex + pivotOffset;
+        swap(a, tempPivotIndex, newPivotIndex);
+
+        return newPivotIndex;
+    }
+
+    public static class PartitionDto {
+        private int smallerSublistLeftIndex;
+        private int smallerSublistRightIndex;
+
+        private int equalsSublistLeftIndex;
+        private int equalsSublistRightIndex;
+
+        private int biggerSublistLeftIndex;
+        private int biggerSublistRightIndex;
+
+    }
+
+    private static int partition2(int[] a, int leftIndex, int rightIndex) {
+        int pivot = a[leftIndex];
+        int pivotIndex = leftIndex;
+        for (int i = leftIndex + 1; i <= rightIndex; i++) {
+            if (a[i] <= pivot) {
+                pivotIndex++;
+                swap(a, pivotIndex, i);
+            }
+        }
+        swap(a, pivotIndex, leftIndex);
+        return pivotIndex;
+    }
+
+    private static void swap(int[] a, int j, int i) {
+        int t = a[i];
+        a[i] = a[j];
+        a[j] = t;
+    }
+
+    private static void randomizedQuickSort(int[] a, int leftIndex, int rightIndex) {
+        if (leftIndex >= rightIndex) {
             return;
         }
-        int k = random.nextInt(r - l + 1) + l;
-        int t = a[l];
-        a[l] = a[k];
-        a[k] = t;
-        //use partition3
-        int m = partition2(a, l, r);
-        randomizedQuickSort(a, l, m - 1);
-        randomizedQuickSort(a, m + 1, r);
+        int pivotIndex = random.nextInt(rightIndex - leftIndex + 1) + leftIndex;
+
+        /* use partition2
+        swap(a, pivotIndex, leftIndex);
+        int m = partition2(a, leftIndex, rightIndex);
+        randomizedQuickSort(a, leftIndex, m - 1);
+        randomizedQuickSort(a, m + 1, rightIndex);
+        */
+        /* use partition3 */
+        PartitionDto partitionDto = partition3(a, leftIndex, pivotIndex, rightIndex);
+        randomizedQuickSort(a, leftIndex, partitionDto.smallerSublistRightIndex);
+        randomizedQuickSort(a, partitionDto.biggerSublistLeftIndex, rightIndex);
+
     }
 
     public static void main(String[] args) {

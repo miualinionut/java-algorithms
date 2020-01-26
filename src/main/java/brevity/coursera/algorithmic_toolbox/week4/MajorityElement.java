@@ -21,17 +21,21 @@ public class MajorityElement {
             int leftMajority = major(a, left, mid);
             int rightMajority = major(a, mid + 1, right);
 
-            int occurrencesOfLeftMajority = leftMajority == -1 ? 0 : count(leftMajority, a, left, right);
-            int occurrencesOfRightMajority = rightMajority == -1 ? 0 : count(rightMajority, a, left, right);
+            return merge(a, left, right, leftMajority, rightMajority);
+        }
+    }
 
-            int moreThenHalf = (int) Math.ceil((right - left) / 2.0);
-            if (occurrencesOfLeftMajority > moreThenHalf) {
-                return leftMajority;
-            } else if (occurrencesOfRightMajority > moreThenHalf) {
-                return rightMajority;
-            } else {
-                return -1;
-            }
+    private static int merge(int[] a, int left, int right, int leftMajority, int rightMajority) {
+        int occurrencesOfLeftMajority = leftMajority == -1 ? 0 : count(leftMajority, a, left, right);
+        int occurrencesOfRightMajority = rightMajority == -1 ? 0 : count(rightMajority, a, left, right);
+
+        int moreThenHalf = (int) Math.ceil((right - left) / 2.0);
+        if (occurrencesOfLeftMajority > moreThenHalf) {
+            return leftMajority;
+        } else if (occurrencesOfRightMajority > moreThenHalf) {
+            return rightMajority;
+        } else {
+            return -1;
         }
     }
 
