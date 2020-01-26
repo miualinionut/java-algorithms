@@ -1,18 +1,48 @@
 package brevity.coursera.algorithmic_toolbox.week4;
 
-import java.util.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.StringTokenizer;
 
 public class MajorityElement {
     private static int getMajorityElement(int[] a, int left, int right) {
+        int major = major(a, left, right - 1);
+//        System.out.println("majority element: " + major);
+        return major;
+    }
+
+    private static int major(int[] a, int left, int right) {
         if (left == right) {
-            return -1;
-        }
-        if (left + 1 == right) {
             return a[left];
+        } else {
+            int mid = (left + right) / 2;
+            int leftMajority = major(a, left, mid);
+            int rightMajority = major(a, mid + 1, right);
+
+            int occurrencesOfLeftMajority = leftMajority == -1 ? 0 : count(leftMajority, a, left, right);
+            int occurrencesOfRightMajority = rightMajority == -1 ? 0 : count(rightMajority, a, left, right);
+
+            int moreThenHalf = (int) Math.ceil((right - left) / 2.0);
+            if (occurrencesOfLeftMajority > moreThenHalf) {
+                return leftMajority;
+            } else if (occurrencesOfRightMajority > moreThenHalf) {
+                return rightMajority;
+            } else {
+                return -1;
+            }
         }
-        //write your code here
-        return -1;
+    }
+
+    private static int count(int majority, int[] a, int left, int right) {
+        int occurrences = 0;
+        for (int i = left; i <= right; i++) {
+            if (a[i] == majority) {
+                occurrences++;
+            }
+        }
+        return occurrences;
     }
 
     public static void main(String[] args) {
@@ -28,6 +58,7 @@ public class MajorityElement {
             System.out.println(0);
         }
     }
+
     static class FastScanner {
         BufferedReader br;
         StringTokenizer st;
